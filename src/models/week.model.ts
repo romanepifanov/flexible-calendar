@@ -5,6 +5,6 @@ export interface WeekModel {
     month: number,
     options: any, // user object
     days: Array<DayModel | null>,
-    date: Date,
+    date: Date | null,
     weekNumber: number
 }

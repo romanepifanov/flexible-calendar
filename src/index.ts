@@ -14,15 +14,19 @@ export class FlexibleCalendar {
 
     constructor() { }
 
-    public build = (): any => {
-        return this.generateYears();
+    public build = (yearAfter: number = 20, yearBefore: number = 20): any => {
+        const currentDate = new Date;
+        const endYear:number = currentDate.getFullYear() + yearAfter;
+        const startYear:number = currentDate.getFullYear() - yearBefore;
+
+        return this.generateYears(startYear, endYear);
     }
 
-    private generateYears = (): Array<YearModel> => {
+    private generateYears = (startYear: number, endYear: number): Array<YearModel> => {
         const currentDate = new Date;
         const years: Array<YearModel> = [];
 
-        for (var i = currentDate.getFullYear() - 1; i < currentDate.getFullYear() + 1; i++) {
+        for (var i = startYear; i < endYear; i++) {
             years.push({
                 name: i,
                 months: this.generateMonths(i)
@@ -100,8 +104,8 @@ export class FlexibleCalendar {
         return d.getDate();
     }
 
-    private getDateByDay(days: Array<DayModel | null>): Date {
-        let date: Date = new Date();
+    private getDateByDay(days: Array<DayModel | null>): Date | null {
+        let date: Date | null = null;
 
         days.forEach((day: DayModel | null) => {
             if (day && !date) {
