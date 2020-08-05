@@ -4,29 +4,27 @@ import { WeekModel } from "./models/week.model";
 import { DayModel } from "./models/day.model";
 import { Language } from "./models/language.model";
 import LanguageHandler from "./setting/languages";
+import { InitialOptions } from "./models/initial-options.model";
 
 export class FlexibleCalendar {
-	private calendar = {};
+    private calendar = {};
     private month: Array<string> = [];
     private monthShort: Array<string> = [];
     private days: Array<string> = [];
     private daysMiddle: Array<string> = [];
     private daysShort: Array<string> = [];
 
-	private dayNumber = 1;
-	private weekNumber = 0;
-	private currentYear = new Date().getFullYear();
-	private currentMonth = new Date().getMonth();
-	private _language: Language | null = null;
+    private dayNumber = 1;
+    private weekNumber = 0;
+    private currentYear = new Date().getFullYear();
+    private currentMonth = new Date().getMonth();
+    private _language: Language | null = null;
+    private _languageHandler: LanguageHandler = new LanguageHandler()
 
-    constructor(
-        private _languageHandler: LanguageHandler
-    ) { }
-
-    public build = (yearAfter: number = 20, yearBefore: number = 20, language: string = 'en'): any => {
-        this.pullTranslations(language);
-        const endYear:number = this.currentYear + yearAfter;
-        const startYear:number = this.currentYear - yearBefore;
+    public build = (options: InitialOptions = {}): any => {
+        this.pullTranslations(options && options.language ? options.language : 'en');
+        const endYear: number = this.currentYear + (options && options.yearAfter ? options.yearAfter : 20);
+        const startYear: number = this.currentYear - (options && options.yearBefore ? options.yearBefore : 20);
 
         return this.generateYears(startYear, endYear);
     }
@@ -93,7 +91,7 @@ export class FlexibleCalendar {
             if (this.daysName(this.month.indexOf(month), year, this.dayNumber).getDay() === i) {
                 days.push({
                     number: this.dayNumber,
-                    selected: false, 
+                    selected: false,
                     date: this.daysName(this.month.indexOf(month), year, this.dayNumber),
                     options: {}
                 });
@@ -145,7 +143,7 @@ export class FlexibleCalendar {
     private pullTranslations(language: string) {
         this._language = this._languageHandler.get(language);
 
-        if(this._language) {
+        if (this._language) {
             this.month = this._language.month;
             this.monthShort = this._language.monthShort;
             this.days = this._language.days;
