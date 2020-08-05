@@ -1,13 +1,14 @@
+import { YearModel } from "./models/year.model";
+import { MonthModel } from "./models/month.model";
+import { WeekModel } from "./models/week.model";
+import { DayModel } from "./models/day.model";
 
 export class FlexibleCalendar {
 	private calendar = {};
-
 	private monthsLarge: Array<string> = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 	private dayNames: Array<string> = ['Week #', 'Sun', 'Mon', 'Tues', 'Wed', 'Thurs', 'Fri', 'Sat'];
-
 	private dayNumber = 1;
 	private weekNumber = 0;
-
 	private currentYear = new Date().getFullYear();
 	private currentMonth = new Date().getMonth();
 
@@ -17,58 +18,54 @@ export class FlexibleCalendar {
         return this.generateYears();
     }
 
-    private generateYears() {
+    private generateYears = (): Array<YearModel> => {
         const currentDate = new Date;
-        var years = {};
+        const years: Array<YearModel> = [];
 
         for (var i = currentDate.getFullYear() - 1; i < currentDate.getFullYear() + 1; i++) {
-            years[i] = { 'name': i, 'months': this.generateMonths(i) };
+            years.push({
+                name: i,
+                months: this.generateMonths(i)
+            });
+
             this.weekNumber = 0;
         }
 
-        return { 'years': years };
+        return years;
     }
 
-    private generateMonths(year) {
-        var months = {};
+    private generateMonths(year: number): Array<MonthModel> {
+        const months: Array<MonthModel> = [];
 
-        this.monthsLarge.forEach((monthName, index) {
-            months[index] = { 'name': monthName, 'weeks': this.generateWeeks(year, monthName, months[index - 1]) };
+        this.monthsLarge.forEach((monthName: string, index: number) => {
+            months.push({
+                name: monthName,
+                weeks: this.generateWeeks(year, monthName, months[index - 1])
+            });
         });
 
         return months;
     }
 
-    private generateWeeks(year, month, previousMonth) {
-
-        var week = {
-            PhenologicalStage: '',
-            cropId: {},
-            choosed: false,
-            month: this.monthsLarge.indexOf(month) + 1,
-            items: [{
-                FertilizerName: '',
-                Other: '',
-                FertilizerAmount: '',
-                Units: '',
-                Id: null
-            }],
-            Position: null,
-            days: {}
-        };
-
-        var weeks = {};
-        var currentWeeks = this.weekCount(year, this.monthsLarge.indexOf(month));
-        var currentCountDays = this.daysInMonth(this.monthsLarge.indexOf(month), year);
-        var weekIndex = 0;
+    private generateWeeks(year: number, month: string, previousMonth: MonthModel): Array<WeekModel> {
+        const weeks: Array<WeekModel> = [];
+        const currentWeeks = this.weekCount(year, this.monthsLarge.indexOf(month));
+        const currentCountDays = this.daysInMonth(this.monthsLarge.indexOf(month), year);
+        let weekIndex = 0;
 
         for (var j = 0; j < currentWeeks; j++) {
             this.weekNumber = j === 0 && previousMonth && previousMonth.weeks[Object.keys(previousMonth.weeks).length - 1] && previousMonth.weeks[Object.keys(previousMonth.weeks).length - 1].days && !previousMonth.weeks[Object.keys(previousMonth.weeks).length - 1].days[6] ? this.weekNumber : this.weekNumber + 1;
-            week.showing = this.weekNumber;
-            week.Position = year + '-' + month + '-' + weekIndex;
-            week.days = this.generateDays(year, month, currentCountDays, weekIndex);
-            week['Date'] = this.getDateByDay(week.days);
-            weeks[weekIndex] = Object.assign({}, week);
+            let days = this.generateDays(year, month, currentCountDays, weekIndex);
+
+            weeks.push({
+                weekNumber: this.weekNumber,
+                selected: false,
+                month: this.monthsLarge.indexOf(month) + 1,
+                options: {}, // user object
+                days: days,
+                date: this.getDateByDay(days)
+            });
+
             weekIndex++;
         }
 
@@ -77,54 +74,49 @@ export class FlexibleCalendar {
         return weeks;
     }
 
-    generateDays(year, month, currentCountDays, week) {
-
-        var day = {
-            Position: null,
-            Id: null,
-            namber: 1,
-            choosed: false,
-            IrrigationVolume: ''
-        };
-        var days = {};
+    private generateDays(year: number, month: string, currentCountDays: number, week: number): Array<DayModel | null> {
+        const days: Array<DayModel | null> = [];
 
         for (var i = 0; i < 7; i++) {
             if (this.daysName(this.monthsLarge.indexOf(month), year, this.dayNumber).getDay() === i) {
-                day.namber = this.dayNumber;
-                day.date = this.daysName(this.monthsLarge.indexOf(month), year, this.dayNumber);
-                day.Position = year + '-' + month + '-' + week + '-' + i;
-                days[i] = Object.assign({}, day);
+                days.push({
+                    number: this.dayNumber,
+                    selected: false, 
+                    date: this.daysName(this.monthsLarge.indexOf(month), year, this.dayNumber),
+                    options: {}
+                });
+
                 this.dayNumber = this.dayNumber === currentCountDays ? this.dayNumber : this.dayNumber + 1;
             } else {
-                days[i] = null;
-
+                days.push(null);
             }
         }
 
         return days;
     }
 
-    daysInMonth(month, year) {
+    private daysInMonth(month: number, year: number) {
         var d = new Date(year, month + 1, 0);
         return d.getDate();
     }
 
-    getDateByDay(days) {
-        var date = null;
-        Object.keys(days).forEach((day) => {
-            if (days[day] && !date) {
-                date = days[day].date;
+    private getDateByDay(days: Array<DayModel | null>): Date {
+        let date: Date = new Date();
+
+        days.forEach((day: DayModel | null) => {
+            if (day && !date) {
+                date = day.date;
             }
         });
 
         return date;
     }
 
-    daysName(month, year, day) {
+    private daysName(month: number, year: number, day: number) {
         return new Date(year, month, day);
     }
 
-    weekCount(year, month_number) {
+    private weekCount(year: number, month_number: number) {
         var firstOfMonth = this.daysName(month_number, year, 1);
         var numberOfDaysInMonth = this.daysInMonth(month_number, year);
         var notSunStart = 0;
