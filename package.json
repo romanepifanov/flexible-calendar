@@ -1,13 +1,13 @@
 {
   "name": "@jusogu/flexible-calendar",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "description": "flexseble-calendar",
-  "main": "index.js",
+  "main": "./lib/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc"
   },
-  "author": "Roman Epifanov",
+  "author": "Roman Epifanov <romanepifanov666@gmail.com>",
   "license": "ISC",
   "devDependencies": {
     "typescript": "^3.9.7"
