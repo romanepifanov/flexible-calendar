@@ -2,31 +2,39 @@ import { YearModel } from "./models/year.model";
 import { MonthModel } from "./models/month.model";
 import { WeekModel } from "./models/week.model";
 import { DayModel } from "./models/day.model";
+import { Language } from "./models/language.model";
+import LanguageHandler from "./setting/languages";
 
 export class FlexibleCalendar {
 	private calendar = {};
-	private monthsLarge: Array<string> = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-	private dayNames: Array<string> = ['Week #', 'Sun', 'Mon', 'Tues', 'Wed', 'Thurs', 'Fri', 'Sat'];
+    private month: Array<string> = [];
+    private monthShort: Array<string> = [];
+    private days: Array<string> = [];
+    private daysMiddle: Array<string> = [];
+    private daysShort: Array<string> = [];
+
 	private dayNumber = 1;
 	private weekNumber = 0;
 	private currentYear = new Date().getFullYear();
 	private currentMonth = new Date().getMonth();
+	private _language: Language | null = null;
 
-    constructor() { }
+    constructor(
+        private _languageHandler: LanguageHandler
+    ) { }
 
-    public build = (yearAfter: number = 20, yearBefore: number = 20): any => {
-        const currentDate = new Date;
-        const endYear:number = currentDate.getFullYear() + yearAfter;
-        const startYear:number = currentDate.getFullYear() - yearBefore;
+    public build = (yearAfter: number = 20, yearBefore: number = 20, language: string = 'en'): any => {
+        this.pullTranslations(language);
+        const endYear:number = this.currentYear + yearAfter;
+        const startYear:number = this.currentYear - yearBefore;
 
         return this.generateYears(startYear, endYear);
     }
 
     private generateYears = (startYear: number, endYear: number): Array<YearModel> => {
-        const currentDate = new Date;
         const years: Array<YearModel> = [];
 
-        for (var i = startYear; i < endYear; i++) {
+        for (let i = startYear; i < endYear; i++) {
             years.push({
                 name: i,
                 months: this.generateMonths(i)
@@ -41,7 +49,7 @@ export class FlexibleCalendar {
     private generateMonths(year: number): Array<MonthModel> {
         const months: Array<MonthModel> = [];
 
-        this.monthsLarge.forEach((monthName: string, index: number) => {
+        this.month.forEach((monthName: string, index: number) => {
             months.push({
                 name: monthName,
                 weeks: this.generateWeeks(year, monthName, months[index - 1])
@@ -53,18 +61,18 @@ export class FlexibleCalendar {
 
     private generateWeeks(year: number, month: string, previousMonth: MonthModel): Array<WeekModel> {
         const weeks: Array<WeekModel> = [];
-        const currentWeeks = this.weekCount(year, this.monthsLarge.indexOf(month));
-        const currentCountDays = this.daysInMonth(this.monthsLarge.indexOf(month), year);
+        const currentWeeks = this.weekCount(year, this.month.indexOf(month));
+        const currentCountDays = this.daysInMonth(this.month.indexOf(month), year);
         let weekIndex = 0;
 
-        for (var j = 0; j < currentWeeks; j++) {
+        for (let j = 0; j < currentWeeks; j++) {
             this.weekNumber = j === 0 && previousMonth && previousMonth.weeks[Object.keys(previousMonth.weeks).length - 1] && previousMonth.weeks[Object.keys(previousMonth.weeks).length - 1].days && !previousMonth.weeks[Object.keys(previousMonth.weeks).length - 1].days[6] ? this.weekNumber : this.weekNumber + 1;
             let days = this.generateDays(year, month, currentCountDays, weekIndex);
 
             weeks.push({
                 weekNumber: this.weekNumber,
                 selected: false,
-                month: this.monthsLarge.indexOf(month) + 1,
+                month: this.month.indexOf(month) + 1,
                 options: {}, // user object
                 days: days,
                 date: this.getDateByDay(days)
@@ -81,12 +89,12 @@ export class FlexibleCalendar {
     private generateDays(year: number, month: string, currentCountDays: number, week: number): Array<DayModel | null> {
         const days: Array<DayModel | null> = [];
 
-        for (var i = 0; i < 7; i++) {
-            if (this.daysName(this.monthsLarge.indexOf(month), year, this.dayNumber).getDay() === i) {
+        for (let i = 0; i < 7; i++) {
+            if (this.daysName(this.month.indexOf(month), year, this.dayNumber).getDay() === i) {
                 days.push({
                     number: this.dayNumber,
                     selected: false, 
-                    date: this.daysName(this.monthsLarge.indexOf(month), year, this.dayNumber),
+                    date: this.daysName(this.month.indexOf(month), year, this.dayNumber),
                     options: {}
                 });
 
@@ -100,7 +108,7 @@ export class FlexibleCalendar {
     }
 
     private daysInMonth(month: number, year: number) {
-        var d = new Date(year, month + 1, 0);
+        let d = new Date(year, month + 1, 0);
         return d.getDate();
     }
 
@@ -121,10 +129,10 @@ export class FlexibleCalendar {
     }
 
     private weekCount(year: number, month_number: number) {
-        var firstOfMonth = this.daysName(month_number, year, 1);
-        var numberOfDaysInMonth = this.daysInMonth(month_number, year);
-        var notSunStart = 0;
-        var daysInFirstWeek = 0;
+        let firstOfMonth = this.daysName(month_number, year, 1);
+        let numberOfDaysInMonth = this.daysInMonth(month_number, year);
+        let notSunStart = 0;
+        let daysInFirstWeek = 0;
 
         if (firstOfMonth.getDay() !== 0) {
             daysInFirstWeek = 6 - firstOfMonth.getDay() + 1;
@@ -132,5 +140,17 @@ export class FlexibleCalendar {
         }
 
         return Math.ceil((numberOfDaysInMonth - daysInFirstWeek) / 7) + notSunStart;
+    }
+
+    private pullTranslations(language: string) {
+        this._language = this._languageHandler.get(language);
+
+        if(this._language) {
+            this.month = this._language.month;
+            this.monthShort = this._language.monthShort;
+            this.days = this._language.days;
+            this.daysMiddle = this._language.daysMiddle;
+            this.daysShort = this._language.daysShort;
+        }
     }
 }
