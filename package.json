@@ -1,15 +1,27 @@
 {
-  "name": "flexible-calendar",
+  "name": "@jusogu/flexible-calendar",
   "version": "0.0.1",
   "description": "flexseble-calendar",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build" : "tsc"
+    "build": "tsc"
   },
   "author": "Roman Epifanov",
   "license": "ISC",
   "devDependencies": {
     "typescript": "^3.9.7"
-  }
+  },
+  "directories": {
+    "lib": "lib"
+  },
+  "dependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/romanepifanov/flexible-calendar.git"
+  },
+  "bugs": {
+    "url": "https://github.com/romanepifanov/flexible-calendar/issues"
+  },
+  "homepage": "https://github.com/romanepifanov/flexible-calendar#readme"
 }
